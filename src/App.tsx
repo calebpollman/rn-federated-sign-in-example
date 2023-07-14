@@ -19,14 +19,14 @@ Amplify.configure(config);
 Logger.LOG_LEVEL = 'DEBUG';
 
 function App(): JSX.Element {
-  useDeepLinking();
+  // useDeepLinking();
 
   const {isSignedIn} = useIsSignedIn();
 
   console.log('isSignedIn', isSignedIn);
 
   return (
-    <Authenticator.Provider>
+    // <Authenticator.Provider>
       <SafeAreaView style={styles.container}>
         <Button
           title={isSignedIn ? 'Sign Out' : 'Go to hosted UI'}
@@ -42,9 +42,9 @@ function App(): JSX.Element {
             }
           }}
         />
-        <Authenticator />
+        {/* <Authenticator /> */}
       </SafeAreaView>
-    </Authenticator.Provider>
+    // </Authenticator.Provider>
   );
 }
 
