@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 
-import {Hub, HubCallback} from '@aws-amplify/core';
+import {getCurrentUser} from 'aws-amplify/auth';
+import {Hub} from 'aws-amplify/utils';
 import {Linking} from 'react-native';
 
 export const deepLinkHandler = (
@@ -18,19 +19,21 @@ export const deepLinkHandler = (
 
 export async function useDeepLinking(shouldLog = true): Promise<void> {
   useEffect(() => {
-    const listener = Linking.addEventListener('url', deepLinkHandler);
+    const listener = Linking.addEventListener('url', url =>
+      deepLinkHandler(url, shouldLog),
+    );
     return listener.remove;
-  }, []);
+  }, [shouldLog]);
 
   useEffect(() => {
     Linking.getInitialURL()
       .then(url => {
-        console.log('url', url);
+        console.log('initial url', url);
       })
       .catch(e => {
         console.log(`Cold boot deep link error: ${e}`);
       });
-  });
+  }, []);
 }
 
 export interface UseIsSignedInParams {
@@ -52,17 +55,19 @@ export function useIsSignedIn({
     () => INITIAL_STATE,
   );
 
-  const handleEvents: HubCallback = React.useCallback(
-    ({payload}) => {
-      switch (payload.event) {
-        case 'signIn':
+  const handleEvent = React.useCallback(
+    (capsule: any) => {
+      console.log('hub capsule:', capsule);
+
+      switch (capsule?.payload.event) {
+        case 'signedIn':
         case 'autoSignIn': {
           onSignIn?.();
 
           setOutput({isSignedIn: true});
           break;
         }
-        case 'signOut': {
+        case 'signedOut': {
           onSignOut?.();
 
           setOutput({isSignedIn: false});
@@ -70,7 +75,6 @@ export function useIsSignedIn({
         }
 
         default: {
-          // we do not handle other hub events like `configured`.
           break;
         }
       }
@@ -79,9 +83,19 @@ export function useIsSignedIn({
   );
 
   React.useEffect(() => {
-    const unsubscribe = Hub.listen('auth', handleEvents, 'useIsSignedIn');
+    getCurrentUser()
+      .then(() => {
+        setOutput({isSignedIn: true});
+      })
+      .catch(() => {
+        setOutput({isSignedIn: false});
+      });
+
+    const unsubscribe = Hub.listen('auth', handleEvent, 'useIsSignedIn');
     return unsubscribe;
-  }, [handleEvents]);
+  }, [handleEvent]);
+
+  console.log('isSignedIn', output.isSignedIn);
 
   return output;
 }
