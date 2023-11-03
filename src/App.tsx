@@ -11,7 +11,7 @@ import {SafeAreaView, StyleSheet, Button} from 'react-native';
 import {Amplify} from 'aws-amplify';
 import {signInWithRedirect, signOut} from 'aws-amplify/auth';
 import {ConsoleLogger as Logger} from 'aws-amplify/utils';
-import config from './aws-exports';
+import config from '../amplifyconfiguration.json';
 
 import {useDeepLinking, useIsSignedIn} from './utils';
 
